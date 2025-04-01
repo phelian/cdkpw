@@ -19,6 +19,9 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go
+            # golangci-lint Wait until v2 is available
+            golint
+            just
           ];
 
           shellHook = ''
