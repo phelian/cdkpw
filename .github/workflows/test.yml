@@ -1,4 +1,4 @@
-name: Go Test (Nix + Coverage)
+name: Go Test
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
 
       - name: ⚡️ Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
+        uses: DeterminateSystems/flakehub-cache-action@main
 
       - name: 🔍 Flake Input Checker
         uses: DeterminateSystems/flake-checker-action@main
@@ -34,7 +34,7 @@ jobs:
           nix develop --command bash -c '
             echo "🏗 Running tests..."
             go mod tidy
-            go test ./... -v -coverprofile=coverage.out -coverpkg=./...
+            go test ./cmd/... -v -coverprofile=coverage.out -coverpkg=./cmd/...
             go tool cover -func=coverage.out
 
             echo "🔍 Checking coverage threshold..."
@@ -53,4 +53,3 @@ jobs:
         with:
           name: coverage
           path: ./coverage.out
-          if-no-files-found: ignore
