@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,6 +16,152 @@ type configSuite struct {
 	suite.Suite
 	originalEnv string
 	tempDir     string
+}
+
+func (s *configSuite) TestConfigFindProfile_Matching() {
+	config := &Config{
+		Profiles: []Profile{
+			{Match: "Prod", Profile: "prod_admin"},
+			{Match: "Dev", Profile: "dev_admin"},
+			{Match: "Secure", Profile: "secure_admin"},
+			{Match: "Api", Profile: "api_admin"},
+		},
+		CdkLocation: "/usr/local/bin/cdk",
+	}
+
+	tests := []struct {
+		name     string
+		stackArg string
+		want     string
+		found    bool
+	}{
+		{
+			name:     "matches Prod",
+			stackArg: "ProdAppStack",
+			want:     "prod_admin",
+			found:    true,
+		},
+		{
+			name:     "matches Dev",
+			stackArg: "DevWorkerStack",
+			want:     "dev_admin",
+			found:    true,
+		},
+		{
+			name:     "matches Secure",
+			stackArg: "SecureZoneEKS",
+			want:     "secure_admin",
+			found:    true,
+		},
+		{
+			name:     "matches Api",
+			stackArg: "CustomerApiStack",
+			want:     "api_admin",
+			found:    true,
+		},
+		{
+			name:     "no match",
+			stackArg: "StagingStack",
+			want:     "",
+			found:    false,
+		},
+		{
+			name:     "empty stack arg",
+			stackArg: "",
+			want:     "",
+			found:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			actual, ok := config.findProfile(tt.stackArg)
+			s.Equal(tt.want, actual)
+			s.Equal(tt.found, ok)
+		})
+	}
+	s.T().Run("cdk location", func(t *testing.T) {
+		s.Equal(config.CdkLocation, "/usr/local/bin/cdk")
+	})
+}
+
+func (s *configSuite) TestFindProfile_VerbosePrints() {
+	t := s.T()
+
+	cfg := Config{
+		Profiles: []Profile{
+			{Match: "Backup", Profile: "backup_admin"},
+		},
+		Verbose: INFO,
+	}
+
+	// Capture stdout
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run the function
+	stackArg := "BackupStack"
+	profile, ok := cfg.findProfile(stackArg)
+
+	// Stop capturing
+	w.Close()
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	os.Stdout = old
+
+	// Check results
+	if !ok {
+		t.Fatalf("Expected to find a matching profile")
+	}
+	if profile != "backup_admin" {
+		t.Errorf("Expected profile 'backup_admin', got '%s'", profile)
+	}
+
+	output := buf.String()
+	expected := fmt.Sprintf("cdkpw: Using profile %s for stack %s\n", profile, stackArg)
+	if !strings.Contains(output, expected) {
+		t.Errorf("Expected output to contain %q, but got %q", expected, output)
+	}
+}
+
+func (s *configSuite) TestFindProfile_Silent() {
+	t := s.T()
+
+	cfg := Config{
+		Profiles: []Profile{
+			{Match: "Backup", Profile: "backup_admin"},
+		},
+		Verbose: SILENT,
+	}
+
+	// Capture stdout
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run the function
+	stackArg := "BackupStack"
+	profile, ok := cfg.findProfile(stackArg)
+
+	// Stop capturing
+	w.Close()
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	os.Stdout = old
+
+	// Check results
+	if !ok {
+		t.Fatalf("Expected to find a matching profile")
+	}
+	if profile != "backup_admin" {
+		t.Errorf("Expected profile 'backup_admin', got '%s'", profile)
+	}
+
+	output := buf.String()
+	if output != "" {
+		t.Errorf("Expected no output, but got: %q", output)
+	}
 }
 
 func (s *configSuite) SetupTest() {

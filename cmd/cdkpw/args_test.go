@@ -118,9 +118,9 @@ func (s *commandSuite) TestExecute() {
 		RawArgs: []string{"deploy", "MyStack"},
 	}
 
-	cmd.Execute()
+	cmd.Execute("/usr/local/bin/cdk")
 
-	s.Equal([]string{"cdk", "deploy", "MyStack"}, mockExecutedArgs)
+	s.Equal([]string{"/usr/local/bin/cdk", "deploy", "MyStack"}, mockExecutedArgs)
 }
 
 func TestArgsAndCommand(t *testing.T) {

@@ -26,8 +26,8 @@ func (c *CDKCommand) SetProfile(profile string) {
 	c.RawArgs = append(c.RawArgs, "--profile", profile)
 }
 
-func (c *CDKCommand) Execute() {
-	cmd := execCommand("cdk", c.RawArgs...)
+func (c *CDKCommand) Execute(cdk string) {
+	cmd := execCommand(os.ExpandEnv(cdk), c.RawArgs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
