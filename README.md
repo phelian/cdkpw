@@ -33,7 +33,17 @@ profiles:
     profile: dev_admin
   - match: Secure
     profile: securezone_admin
+cdkLocation: ${CDK_BIN}
+verbose: 0|1|2
 ```
+
+cdkLocation defaults to `cdk`m accepts string or envvars  
+verbose default to 0 (silent)
+
+Verbose levels:
+
+- 0 (Silent)
+- 1 (Info)
 
 ## How to use
 
