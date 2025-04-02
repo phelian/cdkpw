@@ -1,12 +1,17 @@
 package main
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 )
 
 type argsSuite struct {
+	suite.Suite
+}
+
+type commandSuite struct {
 	suite.Suite
 }
 
@@ -75,6 +80,50 @@ func (s *argsSuite) TestParseArgs() {
 	}
 }
 
-func TestArgs(t *testing.T) {
+func (s *commandSuite) TestSetProfile() {
+	cmd := &CDKCommand{
+		RawArgs: []string{"deploy", "MyStack"},
+	}
+
+	cmd.SetProfile("my-profile")
+
+	s.Equal("my-profile", cmd.Profile)
+	s.Equal([]string{"deploy", "MyStack", "--profile", "my-profile"}, cmd.RawArgs)
+
+	// Should not override an existing profile
+	cmd.SetProfile("another-profile")
+	s.Equal("my-profile", cmd.Profile)
+	s.Equal([]string{"deploy", "MyStack", "--profile", "my-profile"}, cmd.RawArgs)
+}
+
+func (s *commandSuite) TestIsProfiled() {
+	s.True((&CDKCommand{Profile: "prod"}).IsProfiled())
+	s.False((&CDKCommand{}).IsProfiled())
+}
+
+var mockExecutedArgs []string
+
+func mockExecCommand(command string, args ...string) *exec.Cmd {
+	mockExecutedArgs = append([]string{command}, args...)
+	return exec.Command("echo", "mocked cdk call")
+}
+
+func (s *commandSuite) TestExecute() {
+	original := execCommand
+	defer func() { execCommand = original }()
+
+	execCommand = mockExecCommand // inject mock
+
+	cmd := &CDKCommand{
+		RawArgs: []string{"deploy", "MyStack"},
+	}
+
+	cmd.Execute()
+
+	s.Equal([]string{"cdk", "deploy", "MyStack"}, mockExecutedArgs)
+}
+
+func TestArgsAndCommand(t *testing.T) {
 	suite.Run(t, new(argsSuite))
+	suite.Run(t, new(commandSuite))
 }

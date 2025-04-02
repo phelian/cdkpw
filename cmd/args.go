@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var execCommand = exec.Command
+
 type CDKCommand struct {
 	Action    string   // diff, deploy, etc.
 	StackName string   // the first non-flag positional arg
@@ -25,7 +27,7 @@ func (c *CDKCommand) SetProfile(profile string) {
 }
 
 func (c *CDKCommand) Execute() {
-	cmd := exec.Command("cdk", c.RawArgs...)
+	cmd := execCommand("cdk", c.RawArgs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

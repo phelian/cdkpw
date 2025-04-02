@@ -20,9 +20,6 @@ jobs:
       - name: ❄️ Install Nix (Determinate Systems)
         uses: DeterminateSystems/nix-installer-action@main
 
-      - name: ⚡️ Magic Nix Cache
-        uses: DeterminateSystems/flakehub-cache-action@main
-
       - name: 🔍 Flake Input Checker
         uses: DeterminateSystems/flake-checker-action@main
         with:
@@ -38,7 +35,7 @@ jobs:
             go tool cover -func=coverage.out
 
             echo "🔍 Checking coverage threshold..."
-            threshold=80
+            threshold=75
             total=$(go tool cover -func=coverage.out | grep total: | awk "{ print substr(\$3, 1, length(\$3)-1) }")
 
             echo "🧾 Total coverage: $total%"

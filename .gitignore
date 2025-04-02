@@ -1,3 +1,6 @@
 .direnv
 .go
 .vscode
+bin
+bin/cdkpw
+coverage.out
