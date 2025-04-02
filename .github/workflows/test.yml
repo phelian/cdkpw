@@ -52,4 +52,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: coverage
-          path: coverage.out
+          path: ./coverage.out
+          if-no-files-found: ignore
