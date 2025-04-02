@@ -1,0 +1,52 @@
+name: Go Test (Nix + Coverage)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      - name: ❄️ Install Nix (Determinate Systems)
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: ⚡️ Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: 🔍 Flake Input Checker
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          check-outdated: false
+          fail-mode: true
+
+      - name: 🧪 Run tests and check coverage
+        run: |
+          nix develop --command bash -c '
+            echo "🏗 Running tests..."
+            go mod tidy
+            go test ./... -v -coverprofile=coverage.out -coverpkg=./...
+            go tool cover -func=coverage.out
+
+            echo "🔍 Checking coverage threshold..."
+            threshold=80
+            total=$(go tool cover -func=coverage.out | grep total: | awk "{ print substr(\$3, 1, length(\$3)-1) }")
+
+            echo "🧾 Total coverage: $total%"
+            if (( $(echo "$total < $threshold" | bc -l) )); then
+              echo "❌ Coverage below threshold ($threshold%)"
+              exit 1
+            fi
+          '
+
+      - name: 📦 Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage.out
