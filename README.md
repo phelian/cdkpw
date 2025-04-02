@@ -16,7 +16,7 @@ Example usage
 - 🧠 Auto-matches profile by stack name
 - 🔒 Supports multiple profiles (dev, prod, secure, etc.)
 - ⚙️ Configurable via YAML
-- 💨 Drop-in replacement for `cdk`
+- 💨 AWS SSO Wrapper for `cdk`
 
 ## 🛠️ Config
 
