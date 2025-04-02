@@ -72,5 +72,9 @@ func loadConfig() (*Config, error) {
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("invalid YAML in %s: %w", configPath, err)
 	}
+
+	if config.CdkLocation == "" {
+		config.CdkLocation = "cdk"
+	}
 	return &config, nil
 }
