@@ -32,7 +32,7 @@ profiles:
   - match: Dev
     profile: dev_admin
   - match: Secure
-    profile: securezone_admin
+    profile: secure_admin
 cdkLocation: ${CDK_BIN}
 verbose: 0|1|2
 ```
