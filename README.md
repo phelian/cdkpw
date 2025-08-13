@@ -37,17 +37,19 @@ cdkLocation: ${CDK_BIN}
 verbose: 0|1|2
 ```
 
-cdkLocation defaults to `cdk`m accepts string or envvars  
+cdkLocation defaults to `cdk` accepts string or envvars  
 verbose default to 0 (silent)
 
 Verbose levels:
 
 - 0 (Silent)
 - 1 (Info)
+- 2 (Debug)
 
 ## How to use
 
-`alias cdk='cdkpw'` if alias is possible, if used in another nix flake i had to place a tiny cdk executable in front of path:
+`alias cdk='cdkpw'` if alias is possible  
+If used in another nix flake i had to place a tiny cdk executable in front of path:
 
 ```bash
 #!/usr/bin/env sh

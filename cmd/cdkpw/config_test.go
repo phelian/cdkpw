@@ -49,7 +49,7 @@ func (s *configSuite) TestConfigFindProfile_Matching() {
 		},
 		{
 			name:     "matches Secure",
-			stackArg: "SecureZoneEKS",
+			stackArg: "SecureVaultStack",
 			want:     "secure_admin",
 			found:    true,
 		},
@@ -83,6 +83,57 @@ func (s *configSuite) TestConfigFindProfile_Matching() {
 	s.T().Run("cdk location", func(t *testing.T) {
 		s.Equal(config.CdkLocation, "/usr/local/bin/cdk")
 	})
+}
+
+func (s *configSuite) TestConfigFindProfile_Specificity() {
+	config := &Config{
+		Profiles: []Profile{
+			{Match: "App", Profile: "app_admin"},
+			{Match: "Data", Profile: "data_admin"},
+			{Match: "AppTest", Profile: "app_test_admin"},
+			{Match: "DataStaging", Profile: "data_staging_admin"},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		stackArg string
+		want     string
+		found    bool
+	}{
+		{
+			name:     "matches AppTest over App",
+			stackArg: "AppTestApiStack",
+			want:     "app_test_admin",
+			found:    true,
+		},
+		{
+			name:     "matches DataStaging over Data",
+			stackArg: "DataStagingPipelineStack",
+			want:     "data_staging_admin",
+			found:    true,
+		},
+		{
+			name:     "matches App when no more specific match",
+			stackArg: "AppProductionStack",
+			want:     "app_admin",
+			found:    true,
+		},
+		{
+			name:     "matches Data when no more specific match",
+			stackArg: "DataWarehouseStack",
+			want:     "data_admin",
+			found:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			actual, ok := config.findProfile(tt.stackArg)
+			s.Equal(tt.want, actual)
+			s.Equal(tt.found, ok)
+		})
+	}
 }
 
 func (s *configSuite) TestFindProfile_VerbosePrints() {

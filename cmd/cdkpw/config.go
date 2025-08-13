@@ -33,15 +33,32 @@ type Config struct {
 }
 
 func (c *Config) findProfile(stackArg string) (string, bool) {
+	// Find all matching profiles
+	var matches []Profile
 	for _, entry := range c.Profiles {
 		if strings.Contains(stackArg, entry.Match) {
-			if c.Verbose >= INFO {
-				fmt.Printf("cdkpw: Using profile %s for stack %s\n", entry.Profile, stackArg)
-			}
-			return entry.Profile, true
+			matches = append(matches, entry)
 		}
 	}
-	return "", false
+	
+	// No matches found
+	if len(matches) == 0 {
+		return "", false
+	}
+	
+	// Sort by match string length (longest first = most specific)
+	// If multiple profiles match, prefer the most specific one
+	bestMatch := matches[0]
+	for _, match := range matches[1:] {
+		if len(match.Match) > len(bestMatch.Match) {
+			bestMatch = match
+		}
+	}
+	
+	if c.Verbose >= INFO {
+		fmt.Printf("cdkpw: Using profile %s for stack %s\n", bestMatch.Profile, stackArg)
+	}
+	return bestMatch.Profile, true
 }
 
 // getConfigPath retrieves the path to the configuration file.
