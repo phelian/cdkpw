@@ -18,14 +18,14 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            go
+            go_1_26
             # golangci-lint Wait until v2 is available
             golint
             just
           ];
 
           shellHook = ''
-            export GOROOT="${pkgs.go}/share/go"
+            export GOROOT="${pkgs.go_1_26}/share/go"
             export GOPATH="$PWD/.go"
             export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
           '';

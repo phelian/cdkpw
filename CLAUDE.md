@@ -59,7 +59,7 @@ verbose: 0
 
 ## Development Notes
 
-- Uses Go 1.23.8 with modules
+- Uses Go 1.26 with modules
 - Linting configured via `.golangci.yml` with strict rules including varnamelen and revive
 - Nix flake available for consistent development environment
 - Vendored dependencies committed to repository
