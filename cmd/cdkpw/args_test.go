@@ -123,6 +123,19 @@ func (s *commandSuite) TestExecute() {
 	s.Equal([]string{"/usr/local/bin/cdk", "deploy", "MyStack"}, mockExecutedArgs)
 }
 
+func (s *commandSuite) TestSanitizeEnv() {
+	env := []string{
+		"PATH=/usr/bin",
+		"CDKPW_CONFIG=/repo/.cdkpw.yml",
+		"AWS_PROFILE=prod",
+	}
+
+	sanitized := sanitizeEnv(env)
+
+	s.Equal([]string{"PATH=/usr/bin", "AWS_PROFILE=prod"}, sanitized)
+	s.NotContains(sanitized, "CDKPW_CONFIG=/repo/.cdkpw.yml")
+}
+
 func TestArgsAndCommand(t *testing.T) {
 	suite.Run(t, new(argsSuite))
 	suite.Run(t, new(commandSuite))

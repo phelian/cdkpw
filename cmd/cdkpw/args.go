@@ -28,6 +28,7 @@ func (c *CDKCommand) SetProfile(profile string) {
 
 func (c *CDKCommand) Execute(cdk string) {
 	cmd := execCommand(os.ExpandEnv(cdk), c.RawArgs...)
+	cmd.Env = sanitizeEnv(os.Environ())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -40,6 +41,21 @@ func (c *CDKCommand) Execute(cdk string) {
 
 func (c *CDKCommand) IsProfiled() bool {
 	return c.Profile != ""
+}
+
+// sanitizeEnv removes cdkpw-owned variables from the environment passed to the
+// cdk subprocess. The AWS CDK CLI folds any CDK-prefixed env var into its
+// options (yargs .env("CDK")), so CDKPW_CONFIG would otherwise surface as an
+// unknown --pwConfig option and print a warning on every invocation.
+func sanitizeEnv(env []string) []string {
+	sanitized := make([]string, 0, len(env))
+	for _, kv := range env {
+		if strings.HasPrefix(kv, "CDKPW_CONFIG=") {
+			continue
+		}
+		sanitized = append(sanitized, kv)
+	}
+	return sanitized
 }
 
 func parseArgs(args []string) *CDKCommand {
